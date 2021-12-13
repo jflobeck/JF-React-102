@@ -9,6 +9,7 @@ const SearchResults = ({ userQuery, userLimit }) => {
     "https://api.giphy.com/v1/gifs/search?api_key=AimnYfTfv0IUpTe0jgXcml0Af0r3K8P9";
 
   useEffect(() => {
+      if (userQuery && userLimit) {
     fetch(`${baseUrl}&q=${userQuery}&limit=${userLimit}`)
       .then((res) => res.json())
       .then(
@@ -23,7 +24,8 @@ const SearchResults = ({ userQuery, userLimit }) => {
           setError(error);
         }
       );
-  }, [gifs, userQuery]);
+    }
+  }, [gifs, userQuery, userLimit]);
 
   if (error) {
     return <div>Error: {error.message}</div>;

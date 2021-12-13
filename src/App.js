@@ -14,7 +14,7 @@ function App() {
 
   return (
     <div className="flex flex-col justify-center">
-      <div className="p-6 w-1/2 bg-white rounded-xl shadow-md text-center m-auto mt-4 mb-4">
+      <div className="p-6 w-1/2 bg-white rounded-xl shadow-md text-center mx-auto my-4">
         <form onSubmit={handleSubmit} className="mx-w-full">
           <label for="gif-search" className="font-semibold text-lg">
             Giphy Search
