@@ -1,53 +1,89 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import debounce from "lodash/debounce";
 import SearchResults from "./SearchResults";
-// import "./App.css";
 
 function App() {
-  const [gifQuery, setGifQuery] = useState("");
-  const [userLimit, setUserLimit] = useState(10);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setGifQuery(e.target.search.value);
-    setUserLimit(e.target.limit.value);
-    e.target.reset();
+  const [formState, setFormState] = useState({
+    term: "",
+    limit: 10,
+  });
+  const [isFetching, setIsFetching] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleFormChange = e => {
+    const { name, value } = e.target;
+
+    setFormState({
+      ...formState,
+      [name]: value
+    })
   };
+
+  const queryGiphy = debounce((term, limit) => {
+    // make an env var
+    const SECRET_API_KEY = "AimnYfTfv0IUpTe0jgXcml0Af0r3K8P9";
+    const url = `https://api.giphy.com/v1/gifs/search`;
+
+    fetch(`${url}?api_key=${SECRET_API_KEY}&q=${term}&limit=${limit}`)
+      .then(resp => resp.json())
+      .then(res => {
+        const { data } = res;
+        setResults(data);
+        setIsFetching(false);
+      }, err => {
+        setError(err)
+      })
+  }, 400);
+
+  useEffect(() => {
+    const { term, limit } = formState;
+    
+    setIsFetching(true);
+    queryGiphy(term, limit);
+  }, [formState, queryGiphy])
 
   return (
     <div className="flex flex-col justify-center">
-      <div className="mx-auto my-4 rounded-xl shadow-md p-6 w-1/2 bg-white text-center">
-        <form onSubmit={handleSubmit} className="mx-w-full">
-          <label for="gif-search" className="font-semibold text-lg">
-            Giphy Search
-          </label>
-          <input
-            type="text"
-            name="search"
-            className="mt-1 rounded-md border-grey-300 border-2 p-1 w-full text-md font-medium"
-          ></input>
-          <label for="limit" className="m-2">
-            Number of Results
-          </label>
-          <input
-            type="number"
-            name="limit"
-            min="1"
-            max="30"
-            className="mt-1 border-grey-300 border-2 rounded-md p-1 w-auto text-md font-medium"
-          ></input>
-          <button
+      <h1 className="my-6 text-center text-2xl font-medium">Search Giphy for cats and whatever</h1>
+      
+      <div className="mx-auto my-4 rounded-xl shadow-md w-1/2 bg-white">
+        <form onSubmit={e => e.preventDefault()} className="flex rounded-xl overflow-hidden">
+            <input
+              type="text"
+              name="term"
+              value={formState.term}
+              onChange={e => handleFormChange(e)}
+              placeholder="Enter your search term"
+              className="flex-grow p-4"
+            />      
+
+            <select
+              name="limit"
+              onChange={e => handleFormChange(e)}
+              className="flex-none w-16 border-l bg-white px-3"  
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+            </select>
+
+          {/* <button
             type="submit"
-            className="block mt-2 m-auto rounded-2xl px-2 bg-green-900 bg-opacity-70"
+            className="flex-none bg-blue-300 hover:bg-blue-400 py-4 px-8"
           >
             Search
-          </button>
+          </button> */}
         </form>
       </div>
-      {gifQuery ? (
-        <p className="m-auto mb-4 font-medium">{`You searched for ${gifQuery}`}</p>
-      ) : (
-        <p></p>
+
+      {isFetching && (
+        <img src="/logo192.png" className="w-16 h-16 animate-spin mx-auto" alt="Loading..." />
       )}
-      <SearchResults gifQuery={gifQuery} userLimit={userLimit} />
+      <SearchResults results={results} />
     </div>
   );
 }
